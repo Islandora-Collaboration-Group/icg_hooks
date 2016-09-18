@@ -11,9 +11,7 @@
 /**
  * Implements hook_fetch_OBJ( ).
  *
- * Note that this implementation REQUIRED the installation of the following server packages...
- *   apt-get install libssh2-1-dev libssh2-php
- */
+*/
 function icg_hooks_fetch_OBJ($path, $credentials) {
 
   $module_name = basename(__FILE__, '.module');
@@ -38,7 +36,7 @@ function icg_hooks_fetch_OBJ($path, $credentials) {
   // If the server is localhost (127.0.0.1) we don't need ssh, just do simple file read.
   $localhost = (($server === '127.0.0.1') ? TRUE : FALSE);
 
-  // If not localhost, open an SSH connection to support SFTP.
+  /* If not localhost, open an SSH connection to support SFTP.
   if (!$localhost) {
     $conn_id = ssh2_connect($server, 22);
     if ($conn_id) {
@@ -49,22 +47,23 @@ function icg_hooks_fetch_OBJ($path, $credentials) {
       watchdog($module_name, "ssh2_connect failed so no file transfer is possible.");
       return FALSE;
     }
-  }
+  } */
 
   $temp_file = drupal_tempnam('temporary://', 'import_content_');   // open a temp file
 
-  // Fetch the file via SFTP...
+  /* Fetch the file via SFTP...
   if (!$localhost) {
     $target = $sftp . $filepath;
     if (!$read = fopen("ssh2.sftp://$target", 'b')) {
       watchdog($module_name, "Could not open remote file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
       return FALSE;
     }
-  } else {  // ...Or simple fopen if this is a localhost file.
-    if (!$read = fopen($filepath, 'b')) {
-      watchdog($module_name, "Could not open remote file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
-      return FALSE;
-    }
+  } */
+  
+  // Simple fopen if this is a localhost file.
+  if (!$read = fopen($filepath, 'b')) {
+    watchdog($module_name, "Could not open remote file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
+    return FALSE;
   }
 
   if (!$write = fopen($temp_file, 'w')) {

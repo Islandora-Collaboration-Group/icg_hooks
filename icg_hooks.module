@@ -1,6 +1,6 @@
 <?php
 
-// $Id$  dg7.module
+// $Id$  icg_hooks.module
 
 /**
  * Custom hooks code specifically for ICG hack/doc events and development.

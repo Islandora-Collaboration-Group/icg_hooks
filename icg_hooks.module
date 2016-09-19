@@ -11,20 +11,20 @@
 /**
  * Implements hook_validate_csv($xpath, $data).
  */  
- icg_hooks_validate_csv($xpaths, $data) {
+ function icg_hooks_validate_csv($xpaths, $data) {
    $results = FALSE;
    // Loop over the $xpaths...
    foreach($xpaths as $xpath) {
      // Do some meaningful validation here.
      if (strpos($xpath,"#") === 0) {
-       results[$xpath] = "'$xpath' is a comment."
+       $results[$xpath] = "'$xpath' is a comment.";
      }
    }
    // Loop over the $data...
    foreach($data as $cell) {
      // Do some meaningful validation here.
      if (strpos($cell,"#") === 0) {
-       results[$cell] = "'$cell' is a comment."
+       $results[$cell] = "'$cell' is a comment.";
      }
    }
   return $results;    

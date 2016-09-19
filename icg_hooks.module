@@ -54,15 +54,15 @@ function icg_hooks_fetch_OBJ($path, $credentials) {
   /* Fetch the file via SFTP...
   if (!$localhost) {
     $target = $sftp . $filepath;
-    if (!$read = fopen("ssh2.sftp://$target", 'b')) {
+    if (!$read = fopen("ssh2.sftp://$target", 'rb')) {
       watchdog($module_name, "Could not open remote file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
       return FALSE;
     }
   } */
   
   // Simple fopen if this is a localhost file.
-  if (!$read = fopen($filepath, 'b')) {
-    watchdog($module_name, "Could not open remote file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
+  if (!$read = fopen($filepath, 'rb')) {
+    watchdog($module_name, "Could not open local file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
     return FALSE;
   }
 

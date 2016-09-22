@@ -1,0 +1,125 @@
+<?php
+
+// $Id$  icg_hooks.module
+
+/**
+ * Custom hooks code specifically for ICG hack/doc events and development.
+ *
+ * Authors:  Mark A. McFate
+ */
+
+/**
+ * Implements hook_validate_csv($xpath, $data).
+ */  
+ function icg_hooks_validate_csv($xpaths, $data) {
+   $results = FALSE;
+   // Loop over the $xpaths...
+   foreach($xpaths as $xpath) {
+     // Do some meaningful validation here.
+     if (strpos($xpath,"#") === 0) {
+       $results[$xpath] = "'$xpath' is a comment.";
+     }
+   }
+   // Loop over the $data...
+   foreach($data as $cell) {
+     // Do some meaningful validation here.
+     if (strpos($cell,"#") === 0) {
+       $results[$cell] = "'$cell' is a comment.";
+     }
+   }
+  return $results;    
+ }
+
+/**
+ * Implements hook_fetch_OBJ( ).
+ *
+*/
+function icg_hooks_fetch_OBJ($path, $credentials) {
+
+  $module_name = basename(__FILE__, '.module');
+
+  if (empty($path)) {
+    watchdog($module_name, "No content path was supplied so no file transfer connection was attempted.");
+    return FALSE;
+  }
+
+  // Explode the $path... should be of the form server:/dir1/dir2/dir3/filename.ext
+  list($server, $filepath) = explode(':', $path, 2);
+  $parts = pathinfo($filepath);
+  $directory = $parts['dirname'];
+  $filename = $parts['basename'];
+
+  // If no transfer credentials...we're done.
+  if (empty($credentials['username']) || empty($credentials['password'])) { return FALSE; }
+
+  $username = $credentials['username'];
+  $userpass = $credentials['password'];
+
+  // If the server is localhost (127.0.0.1) we don't need ssh, just do simple file read.
+  $localhost = (($server === '127.0.0.1') ? TRUE : FALSE);
+
+  /* If not localhost, open an SSH connection to support SFTP.
+  if (!$localhost) {
+    $conn_id = ssh2_connect($server, 22);
+    if ($conn_id) {
+      ssh2_auth_password($conn_id, $username, $userpass);
+      $sftp = ssh2_sftp($conn_id);
+    }
+    else {
+      watchdog($module_name, "ssh2_connect failed so no file transfer is possible.");
+      return FALSE;
+    }
+  } */
+
+  $temp_file = drupal_tempnam('temporary://', 'import_content_');   // open a temp file
+
+  /* Fetch the file via SFTP...
+  if (!$localhost) {
+    $target = $sftp . $filepath;
+    if (!$read = fopen("ssh2.sftp://$target", 'rb')) {
+      watchdog($module_name, "Could not open remote file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
+      return FALSE;
+    }
+  } */
+  
+  // Simple fopen if this is a localhost file.
+  if (!$read = fopen($filepath, 'rb')) {
+    watchdog($module_name, "Could not open local file '%filepath' for reading.", array('%filepath' => $filepath), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  if (!$write = fopen($temp_file, 'w')) {
+    watchdog($module_name, "Could not open temporary file '%filename' for writing.", array('%filename' => $temp_file), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  // Read and write the file.
+  while (!feof($read)) {
+    fwrite($write, fread($read, 8192));
+  }
+
+  // All done.  Close up shop.
+  fclose($read);
+  fclose($write);
+
+  return $temp_file;
+}
+
+/**
+ * Implements hook_fetch_CSV_defaults( )
+ */
+function icg_hooks_fetch_CSV_defaults( ) {
+  $path = drupal_get_path('module', 'icg_csv_import');
+  $array = array(
+    'label_field' => '/mods/titleInfo/title',
+    'transform'   => $path . '/tests/data/mods_to_dc.xsl',
+  );
+  return $array;
+}
+
+/**
+ * Implements hook_create_object_post_ops( )
+ */
+function icg_hooks_create_object_post_ops($pid) {
+  return;
+}

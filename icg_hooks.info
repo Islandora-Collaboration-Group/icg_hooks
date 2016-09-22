@@ -1,0 +1,6 @@
+;$ID$
+name = ICG Hooks
+description = "Custom hook functions to support ICG hack/doc events and development."
+package = ICG Development
+core = 7.x
+files[] = icg_hooks.module

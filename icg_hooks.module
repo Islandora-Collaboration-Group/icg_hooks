@@ -9,17 +9,10 @@
  */
 
 /**
- * Implements hook_validate_csv($xpath, $data).
+ * Implements hook_validate_csv_data($data).
  */  
- function icg_hooks_validate_csv($xpaths, $data) {
+ function icg_hooks_validate_csv_data($data) {
    $results = FALSE;
-   // Loop over the $xpaths...
-   foreach($xpaths as $xpath) {
-     // Do some meaningful validation here.
-     if (strpos($xpath,"#") === 0) {
-       $results[$xpath] = "'$xpath' is a comment.";
-     }
-   }
    // Loop over the $data...
    foreach($data as $cell) {
      // Do some meaningful validation here.
@@ -29,6 +22,23 @@
    }
   return $results;    
  }
+
+/**
+ * Implements hook_validate_csv_header($xpath).
+ */
+function icg_hooks_validate_csv_header($xpaths) {
+  $results = FALSE;
+  return $results; // temporary !!!!!
+  // Loop over the $xpaths...
+  foreach($xpaths as $xpath) {
+    // Do some meaningful validation here.
+    if (strpos($xpath,"#") === 0) {
+      $results[$xpath] = "'$xpath' is a comment.";
+    }
+  }
+  return $results;
+}
+
 
 /**
  * Implements hook_fetch_OBJ( ).

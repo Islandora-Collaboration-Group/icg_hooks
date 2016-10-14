@@ -9,17 +9,26 @@
  */
 
 /**
- * Implements hook_validate_csv_data($data).
+ * Implements hook_validate_csv_data($header, $data).
  */  
- function icg_hooks_validate_csv_data($data) {
+ function icg_hooks_validate_csv_data($header, $data) {
    $results = FALSE;
+   $h = 0;
+
    // Loop over the $data...
-   foreach($data as $cell) {
+   foreach ($data as $cell) {
+     $xpath = $header[$h++];
+
      // Do some meaningful validation here.
-     if (strpos($cell,"#") === 0) {
-       $results[$cell] = "'$cell' is a comment.";
+
+     // @TODO... The following test may not be appropriate for all institutions!
+     if (strpos(" $xpath", "/mods/originInfo/dateCreated") === 1) {      // the data in $cell MUST BE A VALID DATE!
+       if (!$date = strtotime($cell)) { $results[$cell] = "This is NOT a valid date/time!"; }
+     } else if (strpos($cell, "#") === 0) {   // this is a comment, no further checking required
+       continue;
      }
    }
+
   return $results;    
  }
 
@@ -27,15 +36,31 @@
  * Implements hook_validate_csv_header($xpath).
  */
 function icg_hooks_validate_csv_header($xpaths) {
-  $results = FALSE;
-  return $results; // temporary !!!!!
+  $results = $found = $cmodel = FALSE;
+
   // Loop over the $xpaths...
-  foreach($xpaths as $xpath) {
+  foreach ($xpaths as $xpath) {
+
     // Do some meaningful validation here.
-    if (strpos($xpath,"#") === 0) {
-      $results[$xpath] = "'$xpath' is a comment.";
+    if (strpos($xpath,"#") === 0) {                     // this is a comment, no checking required
+      continue;
+    } else if (strpos(" $xpath", "/mods") === 1) {      // found a probable /mods xpath
+      $found = TRUE;
+    } else if (strpos(" $xpath", "CMODEL") === 1) {     // found the required CMODEL header
+      $cmodel = TRUE;
     }
   }
+
+  // No xpaths found!
+  if (!$found) {
+    $results['Required element missing!'] = "NO valid xpaths found.  This is not a properly structured CSV header!";
+  }
+
+  // No CMODEL key found!
+  if (!$cmodel) {
+    $results['Required element missing!'] = "NO CMODEL column header found.  This is not a properly structured CSV header!";
+  }
+
   return $results;
 }
 
